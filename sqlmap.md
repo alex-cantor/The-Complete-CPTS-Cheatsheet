@@ -132,6 +132,44 @@ Then: `$ sqlmap -r req.txt`
 #### Custom HTTP Requests
 - It is good to note that we may not only structure HTTP requests as we normally do (eg. `id=1`), but we may also use JSON (eg. `{"id":1}`) and XML (eg. `<element><id>1</id></element>`)
 
+## Handling SQLMap Errors
+
+- Display Errors: `--parse-errors`
+- Store the Traffic: `-t <output file`
+- Verbose Output: `-v <level [eg. 6]>`
+- Proxy: `--proxy` to redirect through a MiTM proxy, such as Burp
+
+## Attack Tuning
+
+- Every payload sent to the target consists of:
+  - vector (eg, `UNION ALL SELECT 1,2,VERSION()`): central part of the payload, carrying the useful SQL code to be executed at the target.
+  - boundaries (eg `'<vector>-- -`): prefix and suffix formations, used for proper injection of the vector into the vulnerable SQL statement.
+    - `sqlmap -u "www.example.com/?q=test" --prefix="%'))" --suffix="-- -"`
+
+### Level/Risk
+- `--level`: 1-5 (default: 1)
+- `--risk`: 1-3 (default 1)
+
+### Advanced Tuning
+- **Status Codes**
+-   `--code=<code>`
+  - `200`: TRUE
+  - `500`: FALSE
+- **Titles**
+-   `--titles <title>` compares title of HTML page (<title> tag)
+- **Strings**
+  - `--string=<string>`
+    - `<string>` may be a value such as success or failure, or something totally different
+- **Text-only**
+  - `--text-only`: only shows visible content (eg. not <script>, <style>, <meta>, etc tags)
+- **Techniques**
+  - `technique=<technique>`
+    Ex. `--technique=BEU` for Boolean-Based Blind, Error-Based, and UNION-query payloads
+- **UNION SQLi Tuning**
+  - `union-cols=<number_of_cols>`
+    - Ex. `--union-cols=17` if we know the number of columns of the vulnerable SQL query
+  - `--union-char='<character>'`
+  - `--union-from=<table>`
 # Understanding the output
 
 - Common messages you may receive include:
