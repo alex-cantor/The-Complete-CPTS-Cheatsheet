@@ -170,6 +170,13 @@ Then: `$ sqlmap -r req.txt`
     - Ex. `--union-cols=17` if we know the number of columns of the vulnerable SQL query
   - `--union-char='<character>'`
   - `--union-from=<table>`
+ 
+## Database Enumeration
+
+### SQLMap Data Exfiltration
+
+- SQLMap has a predefined set of queries for all supported DBMSes
+
 # Understanding the output
 
 - Common messages you may receive include:
