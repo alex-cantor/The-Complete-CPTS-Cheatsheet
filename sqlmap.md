@@ -194,9 +194,7 @@ Then: `$ sqlmap -r req.txt`
 - `--schema`: Retrieve the structure of all tables
 - `--search <query>`: Search for databases, tables, and columns of interest
   - Ex. `--search -T user`: Search tables containing `user` keyword
-- 
-
-
+  - Ex. `--search -C pass`: Search columns containing `pass` keyword
 
 # Understanding the output
 
