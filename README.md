@@ -1,9 +1,8 @@
 # The-Complete-CPTS-Cheatsheet
 
-This repository will consist of my documentation throughout all HTB modules for the HTB Certified Penetration Testing Specialist job-role path. I may add further documentation for other modules as well. Enjoy!
+This repo was originally documentation/notes of the CPTS job role path. Since then, it has turned into a place for all sorts of resources, organized in a way that I, and hopefully you, can follow along - ultimately making your pentests easier!
 
-## Penetration Tester
-
+## CPTS Job Role Path
 Penetration Testing Process
   - Notes
   - HTB Cheat Sheet
