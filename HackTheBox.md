@@ -6,7 +6,7 @@ The goal with these notes is for none of them to be useless information, such as
 \*Make sure that you place your notes in the corresponding directory.
 # **Locating your HackTheBox Certification**
 ## **Access**
-In order to access a HackTheBox (HTB) certification course, such as Certified Penetration Testing Specialist (CPTS), Bug Bounty (BB), or SOC Analyst, the administrator must add you to the course. You can request access by contacting <michael.tierney@dmschools.org>.
+In order to access a HackTheBox (HTB) certification course (if you are a student at Central Campus or part of the IATech club), such as Certified Penetration Testing Specialist (CPTS), Bug Bounty (BB), or SOC Analyst, the administrator must add you to the course. You can request access by contacting <michael.tierney@dmschools.org>.
 # **Location**
 Your HTB certification can be found by going to <http://enterprise.hackthebox.com> > Main > View (on your preferred course), and lastly, Continue Learning.
 # **Fun Calculations**
